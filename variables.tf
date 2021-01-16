@@ -1,4 +1,4 @@
 variable "gac" {
-    type = string
-    sensitive = true
+  type      = string
+  sensitive = true
 }
