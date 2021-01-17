@@ -12,6 +12,15 @@ resource "google_container_cluster" "primary" {
   # node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
+
+  # VPC Native Cluster
+  network    = "default"
+  subnetwork = "default"
+
+  ip_allocation_policy {
+    cluster_ipv4_cidr_block  = "/16"
+    services_ipv4_cidr_block = "/22"
+  }
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
