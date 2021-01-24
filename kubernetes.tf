@@ -1,40 +1,52 @@
-resource "kubernetes_pod" "nginx" {
+resource "kubernetes_namespace" "test" {
   metadata {
-    name = "nginx-example"
-    labels = {
-      App = "nginx"
-    }
+    name = "nginx"
   }
-
+}
+resource "kubernetes_deployment" "test" {
+  metadata {
+    name      = "nginx"
+    namespace = kubernetes_namespace.test.metadata.0.name
+  }
   spec {
-    container {
-      image = "nginx:1.7.8"
-      name  = "example"
-
-      port {
-        container_port = 80
+    replicas = 2
+    selector {
+      match_labels = {
+        app = "MyTestApp"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "MyTestApp"
+        }
+      }
+      spec {
+        container {
+          image = "nginx"
+          name  = "nginx-container"
+          port {
+            container_port = 80
+          }
+        }
       }
     }
   }
 }
-
-resource "kubernetes_service" "nginx" {
+resource "kubernetes_service" "test" {
   metadata {
-    name = "nginx-example"
+    name      = "nginx"
+    namespace = kubernetes_namespace.test.metadata.0.name
   }
   spec {
     selector = {
-      App = kubernetes_pod.nginx.metadata[0].labels.App
+      app = kubernetes_deployment.test.spec.0.template.0.metadata.0.labels.app
     }
+    type = "NodePort"
     port {
+      node_port   = 30201
       port        = 80
       target_port = 80
     }
-
-    type = "LoadBalancer"
   }
-}
-
-output "lb_ip" {
-  value = kubernetes_service.nginx.ingress[0].ip
 }
