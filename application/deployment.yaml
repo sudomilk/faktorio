@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: factorio
+spec:
+  ports:
+  - port: 34197
+    protocol: UDP
+  selector:
+    app: factorio
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factorio
+spec:
+  selector:
+    matchLabels:
+      app: factorio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: factorio
+    spec:
+      containers:
+      - image: factoriotools/factorio:1.0
+        name: factorio
+        env:
+        ports:
+        - containerPort: 34197
+          name: factorio
+        volumeMounts:
+        - name: factorio-persistent-storage
+          mountPath: /var/lib/factorio
+      volumes:
+      - name: factorio-persistent-storage
+        persistentVolumeClaim:
+          claimName: factorio-pv-claim
